@@ -1,6 +1,6 @@
 // src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router'
-import Home from "../src/home/Home.vue";
+import Home from '../views/home/Home.vue'
 
 // 定义路由配置
 const routes = [
