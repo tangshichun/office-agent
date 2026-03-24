@@ -19,7 +19,10 @@ const toggleSidebar = () => {
 <template>
   <Transition name="sidebar">
     <aside v-if="show" class="sidebar">
-      <a-button class="toggle-btn" @click="toggleSidebar" :icon="h(MenuFoldOutlined)"></a-button>
+      <div class="title">
+        <span>标题</span>
+        <a-button class="toggle-btn" @click="toggleSidebar" :icon="h(MenuFoldOutlined)"></a-button>
+      </div>
       <div style="min-width: 240px">
         <slot></slot>
       </div>
@@ -40,10 +43,13 @@ const toggleSidebar = () => {
   border-right: 1px solid rgba(255,255,255,.06);
 }
 
+.title {
+  padding: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 .toggle-btn {
-  position: absolute;
-  right: 8px;
-  top: 12px;
 }
 
 .sidebar-enter-active,

@@ -1,6 +1,7 @@
 // See the Electron documentation for details on how to use preload scripts:
 // https://www.electronjs.org/docs/latest/tutorial/process-model#preload-scripts
 import {contextBridge, ipcRenderer} from "electron";
+import agent from "./ipcs/agent";
 
 const logger = async data => {
   return await ipcRenderer.invoke('logger', data);
@@ -9,3 +10,5 @@ const logger = async data => {
 contextBridge.exposeInMainWorld('ipc', {
   logger
 })
+
+contextBridge.exposeInMainWorld('agentIpc', agent)
