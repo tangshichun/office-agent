@@ -1,8 +1,23 @@
 <template>
-  <h1>💖 Hello World!</h1>
-  <p>Welcome to your Electron asdadasd</p>
+  <a-config-provider
+      :theme="{
+        algorithm: theme.darkAlgorithm,
+    }"
+  >
+    <router-view></router-view>
+  </a-config-provider>
 </template>
 
 <script setup>
-console.log('👋 This message is being logged by "App.vue", included via Vite');
+import {theme} from "ant-design-vue";
 </script>
+
+<style>
+:root {
+  --background-color: #151517
+}
+
+html, body, #app {
+  background: var(--background-color);
+}
+</style>
