@@ -24,6 +24,7 @@ const showSidebar = ref(true);
 
 function handleToggleClick() {
   showSidebar.value = !showSidebar.value;
+  window.ipc.logger('1111')
 }
 </script>
 

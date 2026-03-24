@@ -17,6 +17,20 @@
     "name": "Tangsc",
     "email": "tangsc@yh.com"
   },
+  "dependencies": {
+    "@ant-design/icons-vue": "^7.0.1",
+    "@langchain/core": "^0.3.0",
+    "@langchain/deepseek": "^0.0.1",
+    "@langchain/langgraph": "^0.2.0",
+    "@langchain/tavily": "^0.1.0",
+    "ant-design-vue": "^4.2.6",
+    "dotenv": "^16.3.0",
+    "electron-squirrel-startup": "^1.0.1",
+    "langchain": "^0.3.0",
+    "vue": "^3.5.30",
+    "vue-router": "^4.6.4",
+    "zod": "^3.22.0"
+  },
   "license": "MIT",
   "devDependencies": {
     "@electron-forge/cli": "^7.11.1",
@@ -31,12 +45,5 @@
     "@vitejs/plugin-vue": "^5.2.4",
     "electron": "41.0.3",
     "vite": "^5.4.21"
-  },
-  "dependencies": {
-    "@ant-design/icons-vue": "^7.0.1",
-    "ant-design-vue": "^4.2.6",
-    "electron-squirrel-startup": "^1.0.1",
-    "vue": "^3.5.30",
-    "vue-router": "^4.6.4"
   }
 }
