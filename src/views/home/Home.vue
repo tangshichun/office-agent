@@ -24,6 +24,7 @@
               :description="description"
           ></McIntroduction>
           <McPrompt
+              style="margin-top: 20px"
               :list="introPrompt.list"
               :direction="introPrompt.direction"
               class="intro-prompt"
@@ -33,13 +34,19 @@
         <McLayoutContent class="content-container" v-else>
           <template v-for="(msg, idx) in messages" :key="idx">
             <McBubble
+                class="bubble"
+                style="margin-bottom: 14px"
                 v-if="msg.from === 'user'"
                 :content="msg.content"
                 :align="'right'"
-                :avatarConfig="{ imgSrc: 'https://matechat.gitcode.com/png/demo/userAvatar.svg' }"
             >
             </McBubble>
-            <McBubble v-else :content="msg.content" :avatarConfig="{ imgSrc: 'https://matechat.gitcode.com/logo.svg' }" :loading="msg.loading"> </McBubble>
+            <McBubble v-else :avatarConfig="modelAvatar"
+                      style="margin-bottom: 14px"
+                      class="mc-bubble"
+                      :loading="msg.loading">
+              <McMarkdownCard :typing="true" :enableThink="true" :content="msg.content" theme="dark"></McMarkdownCard>
+            </McBubble>
           </template>
         </McLayoutContent>
         <div class="shortcut" style="display: flex; align-items: center; gap: 8px">
@@ -94,6 +101,10 @@ import {h, ref} from "vue";
 import SideBar from "../../components/SideBar.vue";
 import {MenuUnfoldOutlined, PlusOutlined} from "@ant-design/icons-vue"
 
+const modelAvatar = {
+  imgSrc: '/src/assets/images/user-avatar.png',
+};
+
 const showSidebar = ref(true);
 
 function handleToggleClick() {
@@ -116,19 +127,19 @@ const introPrompt = {
     {
       value: 'quickSort',
       label: '帮我写一个快速排序',
-      iconConfig: { name: 'icon-info-o', color: '#5e7ce0' },
+      iconConfig: {name: 'icon-info-o', color: '#5e7ce0'},
       desc: '使用 js 实现一个快速排序',
     },
     {
       value: 'helpMd',
       label: '你可以帮我做些什么？',
-      iconConfig: { name: 'icon-star', color: 'rgb(255, 215, 0)' },
+      iconConfig: {name: 'icon-star', color: 'rgb(255, 215, 0)'},
       desc: '了解当前大模型可以帮你做的事',
     },
     {
       value: 'bindProjectSpace',
       label: '怎么绑定项目空间',
-      iconConfig: { name: 'icon-priority', color: '#3ac295' },
+      iconConfig: {name: 'icon-priority', color: '#3ac295'},
       desc: '如何绑定云空间中的项目',
     },
   ],
@@ -136,21 +147,21 @@ const introPrompt = {
 const simplePrompt = [
   {
     value: 'quickSort',
-    iconConfig: { name: 'icon-info-o', color: '#5e7ce0' },
+    iconConfig: {name: 'icon-info-o', color: '#5e7ce0'},
     label: '帮我写一个快速排序',
   },
   {
     value: 'helpMd',
-    iconConfig: { name: 'icon-star', color: 'rgb(255, 215, 0)' },
+    iconConfig: {name: 'icon-star', color: 'rgb(255, 215, 0)'},
     label: '你可以帮我做些什么？',
   },
 ];
 const startPage = ref(true);
 const inputValue = ref('');
 const inputFootIcons = [
-  { icon: 'icon-at', text: '智能体' },
-  { icon: 'icon-standard', text: '词库' },
-  { icon: 'icon-add', text: '附件' },
+  {icon: 'icon-at', text: '智能体'},
+  {icon: 'icon-standard', text: '词库'},
+  {icon: 'icon-add', text: '附件'},
 ];
 
 const messages = ref([]);
@@ -161,21 +172,82 @@ const newConversation = () => {
 }
 
 const onSubmit = (evt) => {
-  inputValue.value='';
+  console.log("onSubmit", evt)
+  inputValue.value = '';
   startPage.value = false;
   // 用户发送消息
   messages.value.push({
     from: 'user',
     content: evt,
   });
-  setTimeout(() => {
-    // 模型返回消息
-    messages.value.push({
-      from: 'model',
-      content: evt,
-    });
-  }, 200);
+
+  const resMsg = {
+    from: 'model',
+    loading: true,
+  }
+  messages.value.push(resMsg);
+  window.agentIpc.sendMessage({
+    modelId: "xxxxx",
+    message: evt,
+  })
 };
+
+
+window.agentIpc.onMessage((event, data) => {
+  console.log('收到进度:', data);
+
+  // 添加到日志
+  // logs.value.push({
+  //   type: data.type,
+  //   data: data,
+  //   timestamp: data.timestamp || Date.now()
+  // });
+
+  // 根据不同类型更新 UI
+  switch (data.type) {
+    case 'llm_response':
+      // 可以实时显示 LLM 的思考过程
+      console.log('LLM 响应:', data.content);
+      if (data.tool_calls?.length) {
+        console.log('准备调用工具:', data.tool_calls);
+
+
+        if (messages.value[messages.value.length - 1].loading) {
+          messages.value[messages.value.length - 1].content = "正在调用本地工具...";
+          messages.value[messages.value.length - 1].loading = false;
+        } else {
+          messages.value.push({
+            from: 'model',
+            content: "正在调用本地工具...",
+          });
+        }
+      }
+      break;
+
+    case 'tool_calls':
+      console.log('工具调用:', data.tool_calls);
+      break;
+
+    case 'tool_results':
+      console.log('工具结果:', data.results);
+      break;
+
+    case 'final_answer':
+      // finalAnswer.value = data.content;
+      // isLoading.value = false;
+      if (messages.value[messages.value.length - 1].loading) {
+        messages.value[messages.value.length - 1].content = data.content;
+        messages.value[messages.value.length - 1].loading = false;
+      } else {
+        messages.value.push({
+          from: 'model',
+          content: data.content,
+        });
+      }
+      break;
+  }
+});
+
 </script>
 
 <style scoped>
@@ -225,15 +297,18 @@ const onSubmit = (evt) => {
 }
 
 
-
 .container {
-  margin: 20px;
-  height: calc(100vh - 82px);
+  margin: 20px 20px 0;
+  height: calc(100% - 40px);
   padding: 20px;
   gap: 8px;
   background: transparent;
   border: 1px solid #3d3d3d;
   border-radius: 16px;
+}
+
+.mc-bubble {
+  gap: 8px !important;
 }
 
 .content-container {

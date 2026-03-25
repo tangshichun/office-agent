@@ -5,14 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b263923e-eab3-4810-b2ae-9a338948a8a5" name="更改" comment="">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/electron/agent/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/electron/agent/index.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/electron/main/ipcHandler.js" beforeDir="false" afterPath="$PROJECT_DIR$/electron/main/ipcHandler.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/App.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/App.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/SideBar.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/SideBar.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/preload.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/preload.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/renderer.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/renderer.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ipcs/agent.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/ipcs/agent.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/views/home/Home.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/views/home/Home.vue" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -57,6 +55,7 @@
     "git-widget-placeholder": "main",
     "ignore.virus.scanning.warn.message": "true",
     "javascript.preferred.runtime.type.id": "node",
+    "last_opened_file_path": "D:/WebProject/office-agent/src/images",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -76,7 +75,12 @@
   }
 }]]></component>
   <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\WebProject\office-agent\src\images" />
+    </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\WebProject\office-agent\src\assets\images" />
+      <recent name="D:\WebProject\office-agent\src\assets" />
       <recent name="D:\WebProject\office-agent\src" />
       <recent name="D:\WebProject\office-agent\src\views" />
     </key>
@@ -123,7 +127,7 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-d6986cc7102b-9b0f141eb926-JavaScript-WS-253.29346.143" />
+        <option value="bundled-js-predefined-d6986cc7102b-9b0f141eb926-JavaScript-WS-253.32098.39" />
       </set>
     </attachedChunks>
   </component>
@@ -135,6 +139,7 @@
       <option name="presentableId" value="Default" />
       <updated>1774333284764</updated>
       <workItem from="1774333285801" duration="8979000" />
+      <workItem from="1774441477086" duration="4775000" />
     </task>
     <servers />
   </component>
