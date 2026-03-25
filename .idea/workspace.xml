@@ -7,11 +7,6 @@
     <list default="true" id="b263923e-eab3-4810-b2ae-9a338948a8a5" name="更改" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/electron/agent/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/electron/agent/index.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/electron/main/ipcHandler.js" beforeDir="false" afterPath="$PROJECT_DIR$/electron/main/ipcHandler.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ipcs/agent.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/ipcs/agent.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/views/home/Home.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/views/home/Home.vue" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -139,7 +134,7 @@
       <option name="presentableId" value="Default" />
       <updated>1774333284764</updated>
       <workItem from="1774333285801" duration="8979000" />
-      <workItem from="1774441477086" duration="4775000" />
+      <workItem from="1774441477086" duration="5453000" />
     </task>
     <servers />
   </component>

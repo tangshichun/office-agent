@@ -117,8 +117,8 @@ function shouldContinue({ messages }) {
 // 7. 创建工作流
 const workflow = new StateGraph(MessagesAnnotation)
     .addNode('agent', callModel)
-    .addEdge('__start__', 'agent')
     .addNode('tools', toolNode)
+    .addEdge('__start__', 'agent')
     .addEdge('tools', 'agent')  // 关键：工具执行后回到agent
     .addConditionalEdges('agent', shouldContinue)
 
