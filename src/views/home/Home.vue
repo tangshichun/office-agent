@@ -187,6 +187,7 @@ const onSubmit = (evt) => {
   }
   messages.value.push(resMsg);
   window.agentIpc.sendMessage({
+    sessionId: 'xxxSessionID',
     modelId: "xxxxx",
     message: evt,
   })

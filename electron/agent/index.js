@@ -10,6 +10,7 @@ import path from 'path'
 import { ChatDeepSeek } from '@langchain/deepseek'
 import { MessagesAnnotation, StateGraph } from '@langchain/langgraph'
 import { ToolNode } from '@langchain/langgraph/prebuilt'
+import {buildSystemMessage, FileMemory} from "./file-memory";
 
 const execAsync = promisify(exec)
 
@@ -95,11 +96,33 @@ const model = new ChatDeepSeek({
 // 4. 创建工具节点
 const toolNode = new ToolNode(tools)
 
+
+// 文件记忆实例
+const memory = new FileMemory({
+    historyFile: './chat_history.json',
+    sessionId: 'default_session'
+});
+
 // 5. 定义调用模型的函数
 async function callModel(state) {
     console.log("正在调用模型，当前消息数:", state.messages.length)
     console.log("callModel", state.messages)
-    const response = await model.invoke(state.messages)
+
+    // 加载历史记录
+    const memoryVars = await memory.loadMemoryVariables({ input: state.messages[state.messages.length - 1].content });
+    const history = memoryVars.chat_history || [];
+
+    // 构建包含历史记录的消息数组
+    const messages = [buildSystemMessage(history), ...state.messages];
+    console.log("merge后的msg", messages)
+
+    const response = await model.invoke(messages)
+
+    await memory.saveContext({
+        inputs: { input: state.messages[state.messages.length - 1].content },
+        outputs: { response: response.content }
+    });
+
     return { messages: [response] }
 }
 
@@ -125,7 +148,7 @@ const workflow = new StateGraph(MessagesAnnotation)
 const app = workflow.compile()
 
 // 8. 优化后的 callLLM 函数 - 保留 stream 方式
-async function callLLM(message, onProgress) {
+async function callLLM(sessionId, message, onProgress) {
     // 使用 stream 执行，但正确处理状态
     const stream = await app.stream({
         messages: [new HumanMessage(message)]

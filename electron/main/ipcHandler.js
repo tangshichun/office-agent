@@ -25,7 +25,8 @@ function registryHandler(window) {
 
     try {
       // 调用 callLLM，传入回调
-      const finalResult = await callLLM(data.message, onProgress);
+      const finalResult = await callLLM(data.sessionId ,data.message, onProgress);
+      console.log("data.sessionId", data.sessionId)
 
       // 发送最终结果
       event.sender.send('llm-complete', finalResult);
