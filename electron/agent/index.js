@@ -82,7 +82,7 @@ const openFileTool = tool(
 
 // 2. 定义工具集
 const tools = [
-    new TavilySearch({ maxResults: 3 }),
+    new TavilySearch({ maxResults: 3, tavilyApiKey: "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" }),
     openFileTool
 ]
 
@@ -90,7 +90,7 @@ const tools = [
 const model = new ChatDeepSeek({
     model: 'deepseek-chat',
     temperature: 0,
-    apiKey: process.env.DEEPSEEK_API_KEY
+    apiKey: "sk-b73cc7906dbf4a238fa5658eec9e2eda"
 }).bindTools(tools)
 
 // 4. 创建工具节点

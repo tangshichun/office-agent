@@ -6,6 +6,15 @@
           <PlusOutlined/>
           新建会话
         </a-button>
+
+        <HistoryList style="margin-top: 20px" :sessions='[{
+      sessionId: "asdasd",
+      list: [  {
+        "role": "user",
+        "content": "我是谁我是谁我是谁我是谁我是谁我是谁我是谁我是谁我是谁我是谁我是谁我是谁我是谁我是谁我是谁我是谁",
+        "timestamp": "2026-03-25T16:44:41.569Z"
+      }]
+    }]'></HistoryList>
       </div>
     </side-bar>
 
@@ -100,6 +109,7 @@
 import {h, ref} from "vue";
 import SideBar from "../../components/SideBar.vue";
 import {MenuUnfoldOutlined, PlusOutlined} from "@ant-design/icons-vue"
+import HistoryList from "./components/HistoryList.vue";
 
 const modelAvatar = {
   imgSrc: '/src/assets/images/user-avatar.png',
