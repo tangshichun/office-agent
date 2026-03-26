@@ -1,90 +1,18 @@
 import 'dotenv/config'
 import {TavilySearch} from '@langchain/tavily'
 import {HumanMessage} from '@langchain/core/messages'
-import {tool} from '@langchain/core/tools'
-import {z} from 'zod'
-import {exec} from 'child_process'
-import {promisify} from 'util'
-import fs from "node:fs"
-import path from 'path'
 import {ChatDeepSeek} from '@langchain/deepseek'
 import {MessagesAnnotation, StateGraph} from '@langchain/langgraph'
 import {ToolNode} from '@langchain/langgraph/prebuilt'
 import {buildSystemMessage, FileMemory} from "./file-memory";
 import {toolsTextMapper} from "../../utils/tools-text-mapper";
+import {fileTools} from "./tools/FileTools";
 
-const execAsync = promisify(exec)
-
-// 1. 定义打开文件的工具
-const openFileTool = tool(
-  async ({operation, filePath, fileContent}) => {
-    try {
-      switch (operation) {
-        case "open": {
-          const fullPath = path.isAbsolute(filePath)
-            ? filePath
-            : path.join(process.cwd(), filePath)
-
-          if (!fs.existsSync(fullPath)) {
-            return `文件不存在：${fullPath}`
-          }
-
-          const platform = process.platform
-          let command
-
-          if (platform === 'win32') {
-            command = `start "" "${fullPath}"`
-          } else if (platform === 'darwin') {
-            command = `open "${fullPath}"`
-          } else {
-            command = `xdg-open "${fullPath}"`
-          }
-
-          await execAsync(command)
-          return `成功打开文件：${fullPath}`
-        }
-
-        case "write": {
-          const dir = path.dirname(filePath)
-          if (!fs.existsSync(dir)) {
-            fs.mkdirSync(dir, {recursive: true})
-          }
-
-          fs.writeFileSync(filePath, fileContent || '', 'utf-8')
-          return `已成功写入文件：${filePath}`
-        }
-
-        case "delete": {
-          if (!fs.existsSync(filePath)) {
-            return `文件不存在：${filePath}`
-          }
-          fs.rmSync(filePath)
-          return `已删除文件：${filePath}`
-        }
-
-        default:
-          return `不支持的操作：${operation}`
-      }
-    } catch (error) {
-      console.error('文件操作错误:', error)
-      return `文件操作失败：${error.message}`
-    }
-  },
-  {
-    name: 'op_file',
-    description: '操作本地文件，支持打开、写入、删除操作。',
-    schema: z.object({
-      operation: z.enum(['open', 'write', 'delete']).describe("操作类型"),
-      filePath: z.string().describe("文件的完整路径"),
-      fileContent: z.string().optional().describe("写入文件的内容（仅在write操作时需要）")
-    }),
-  }
-)
 
 // 2. 定义工具集
 const tools = [
   new TavilySearch({maxResults: 3, tavilyApiKey: "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"}),
-  openFileTool
+  ...fileTools
 ]
 
 // 3. 定义模型

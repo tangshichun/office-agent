@@ -275,7 +275,13 @@ window.agentIpc.onMessage((event, data) => {
       console.log('LLM 响应:', data.content);
       if (data.tool_calls?.length) {
         console.log('准备调用工具:', data);
-        const text = toolsTextMapper(data.tool_calls);
+        let text = ""
+
+        if (data.content) {
+          text = data.content;
+        } else {
+          text = toolsTextMapper(data.tool_calls);
+        }
 
 
         if (messages.value[messages.value.length - 1].loading) {
@@ -287,6 +293,7 @@ window.agentIpc.onMessage((event, data) => {
             content: text,
           });
         }
+        console.error("text", text)
         messages.value.push({
           from: 'model',
           loading: true,
