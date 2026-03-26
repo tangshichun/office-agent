@@ -174,7 +174,8 @@ async function callLLM(sessionId, message, onProgress) {
   });
   if (isCreated) {
     onProgress({
-      type: 'create-memory'
+      type: 'create-memory',
+      sessionId,
     })
   }
 
@@ -198,6 +199,7 @@ async function callLLM(sessionId, message, onProgress) {
     // 发送步骤信息
     if (onProgress) {
       onProgress({
+        sessionId,
         type: 'step',
         stepName: Object.keys(step)[0],
         data: step,
@@ -212,6 +214,7 @@ async function callLLM(sessionId, message, onProgress) {
       // 发送 LLM 响应（可能是中间响应）
       if (onProgress) {
         onProgress({
+          sessionId,
           type: 'llm_response',
           content: llmResponse.content,
           tool_calls: llmResponse.tool_calls,
@@ -223,6 +226,7 @@ async function callLLM(sessionId, message, onProgress) {
       if (llmResponse.tool_calls?.length) {
         if (onProgress) {
           onProgress({
+            sessionId,
             type: 'tool_calls',
             tool_calls: llmResponse.tool_calls,
             timestamp: Date.now()
@@ -242,6 +246,7 @@ async function callLLM(sessionId, message, onProgress) {
 
       if (onProgress) {
         onProgress({
+          sessionId,
           type: 'tool_results',
           results: toolResults.map(msg => ({
             content: msg.content,

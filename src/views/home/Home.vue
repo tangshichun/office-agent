@@ -7,7 +7,8 @@
           新建会话
         </a-button>
 
-        <HistoryList @item-delete="handleDeleteSession" @item-click="handleItemClick" style="margin-top: 20px" :active-id="currentSessionId" :sessions='sessionList'></HistoryList>
+        <HistoryList @item-delete="handleDeleteSession" @item-click="handleItemClick" style="margin-top: 20px"
+                     :active-id="currentSessionId" :sessions='sessionList'></HistoryList>
       </div>
     </side-bar>
 
@@ -121,7 +122,7 @@ onMounted(() => {
 })
 
 function refreshSessionList() {
-  window.agentIpc.getSessions().then((sessions) => {
+  return window.agentIpc.getSessions().then((sessions) => {
     sessionList.value = sessions;
   })
 }
@@ -151,15 +152,16 @@ async function handleDeleteSession(sessionId) {
     onOk: () => {
       window.agentIpc.deleteSessions(sessionId).then(res => {
         console.log("res", res);
-        refreshSessionList();
-        if (!sessionList.value.find(item => item.id === currentSessionId.value)) {
-          if (!sessionList.value.length) {
-            return;
-          }
+        refreshSessionList().then(() => {
+          if (!sessionList.value.find(item => item.id === currentSessionId.value)) {
+            if (!sessionList.value.length) {
+              return;
+            }
 
-          currentSessionId.value = sessionList.value[0].sessionId;
-        }
-      })
+            handleItemClick(sessionList.value[0].sessionId)
+          }
+        })
+      });
     },
   })
 }
@@ -255,6 +257,10 @@ const onSubmit = (evt) => {
 
 window.agentIpc.onMessage((event, data) => {
   console.log('收到进度:', data);
+  if (data.sessionId !== currentSessionId.value) {
+    console.warn('消息 sessionId 与当前会话不匹配，忽略该消息', data.sessionId, currentSessionId.value);
+    return;
+  }
 
   // 根据不同类型更新 UI
   switch (data.type) {
