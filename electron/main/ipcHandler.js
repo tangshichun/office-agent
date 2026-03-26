@@ -10,13 +10,10 @@ function registryHandler(window) {
   })
 
   ipcMain.handle('agent:detail', async (_, sessionId) => {
-    const list = await getSessionMemory(sessionId);
-    console.log('agent:list', list);
-    return list;
+    return await getSessionMemory(sessionId);
   })
 
   ipcMain.handle('agent:message', async (event, data) => {
-    console.log('agent:message', data.message)
     if (!data.message) {
       return;
     }
@@ -29,7 +26,6 @@ function registryHandler(window) {
     try {
       // 调用 callLLM，传入回调
       const finalResult = await callLLM(data.sessionId ,data.message, onProgress);
-      console.log("data.sessionId", data.sessionId)
 
       // 发送最终结果
       event.sender.send('llm-complete', finalResult);

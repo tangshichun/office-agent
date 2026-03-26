@@ -5,8 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b263923e-eab3-4810-b2ae-9a338948a8a5" name="更改" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/office-agent.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/office-agent.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/electron/agent/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/electron/agent/index.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/electron/main/ipcHandler.js" beforeDir="false" afterPath="$PROJECT_DIR$/electron/main/ipcHandler.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/views/home/Home.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/views/home/Home.vue" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -22,8 +24,8 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="JavaScript File" />
         <option value="Vue Composition API Component" />
+        <option value="JavaScript File" />
       </list>
     </option>
   </component>

@@ -106,6 +106,7 @@ import {MenuUnfoldOutlined, PlusOutlined} from "@ant-design/icons-vue"
 import HistoryList from "./components/HistoryList.vue";
 import {Modal} from "ant-design-vue";
 import {ulid} from "ulid";
+import {toolsTextMapper} from "../../../utils/tools-text-mapper";
 
 const modelAvatar = {
   imgSrc: '/src/assets/images/user-avatar.png',
@@ -272,16 +273,17 @@ window.agentIpc.onMessage((event, data) => {
       // 可以实时显示 LLM 的思考过程
       console.log('LLM 响应:', data.content);
       if (data.tool_calls?.length) {
-        console.log('准备调用工具:', data.tool_calls);
+        console.log('准备调用工具:', data);
+        const text = toolsTextMapper(data.tool_calls);
 
 
         if (messages.value[messages.value.length - 1].loading) {
-          messages.value[messages.value.length - 1].content = "正在调用本地工具...";
+          messages.value[messages.value.length - 1].content = text;
           messages.value[messages.value.length - 1].loading = false;
         } else {
           messages.value.push({
             from: 'model',
-            content: "正在调用本地工具...",
+            content: text,
           });
         }
       }

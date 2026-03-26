@@ -11,6 +11,7 @@ import {ChatDeepSeek} from '@langchain/deepseek'
 import {MessagesAnnotation, StateGraph} from '@langchain/langgraph'
 import {ToolNode} from '@langchain/langgraph/prebuilt'
 import {buildSystemMessage, FileMemory} from "./file-memory";
+import {toolsTextMapper} from "../../utils/tools-text-mapper";
 
 const execAsync = promisify(exec)
 
@@ -133,14 +134,21 @@ async function callModel(state, config) {
 
   // 构建包含历史记录的消息数组
   const messages = [buildSystemMessage(history), ...state.messages];
-  console.log("merge后的msg", messages)
 
   const response = await model.invoke(messages)
 
+  let finalContent = "";
+  if (response.content) {
+    finalContent = response.content;
+  }
+  if (response.tool_calls) {
+
+    finalContent += toolsTextMapper(response.tool_calls);
+  }
+
   await memory.saveContext({
-    outputs: {response: response.content}
+    outputs: {response: finalContent}
   });
-  console.log("saveContext");
 
   return {messages: [response]}
 }
@@ -290,6 +298,7 @@ async function callLLM(sessionId, message, onProgress) {
   // 发送最终答案
   if (onProgress && finalAnswer) {
     onProgress({
+      sessionId,
       type: 'final_answer',
       content: finalAnswer,
       timestamp: Date.now()
