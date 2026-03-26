@@ -119,6 +119,7 @@ async function callLLM(sessionId, message, onProgress) {
   const stream = await app.stream({
     messages: [new HumanMessage(message)],
   }, {
+    recursionLimit: 50,
     configurable: {
       sessionId
     }
