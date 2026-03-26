@@ -14,7 +14,16 @@ const tools = [
     new TavilySearch({
         maxResults: 3,
         tavilyApiKey: "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",
-        country: "china"
+        country: "china",
+        description: `
+### 搜索工具使用限制（重要） ###
+1. 你正在使用 TavilySearch 工具进行联网搜索。
+2. **次数限制**：针对用户的同一个搜索需求，你最多只能尝试调用 TavilySearch 工具 **3次**。
+3. **失败处理**：
+   - 如果 TavilySearch 连续 **3次** 调用失败、报错或返回空结果，**请立即停止调用该工具**。
+   - 此时请直接回复用户：“抱歉，搜索服务暂时无法获取有效信息，请您检查网络或换个关键词再试。”
+4. **禁止死循环**：不要在第 4 次尝试调用 TavilySearch，否则会导致系统崩溃。
+`,
     }),
     ...fileTools
 ]
@@ -124,7 +133,7 @@ async function callLLM(sessionId, message, onProgress) {
         const stream = await app.stream({
             messages: [new HumanMessage(message)],
         }, {
-            recursionLimit: 5,
+            recursionLimit: 50,
             configurable: {
                 sessionId
             }
@@ -164,6 +173,17 @@ async function execStream(sessionId, stream, message, onProgress) {
             // 处理 agent 节点
             if (step.agent) {
                 const llmResponse = step.agent.messages[0]
+
+                // 发送 LLM 响应（可能是中间响应）
+                if (onProgress) {
+                    onProgress({
+                        sessionId,
+                        type: 'llm_response',
+                        content: llmResponse.content,
+                        tool_calls: llmResponse.tool_calls,
+                        timestamp: Date.now()
+                    })
+                }
 
                 // 检查是否是最终回复 (没有工具调用且有内容)
                 if (!llmResponse.tool_calls?.length && llmResponse.content) {

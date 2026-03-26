@@ -157,6 +157,7 @@ async function handleDeleteSession(sessionId) {
         refreshSessionList().then(() => {
           if (!sessionList.value.find(item => item.id === currentSessionId.value)) {
             if (!sessionList.value.length) {
+              messages.value = [];
               return;
             }
 
@@ -191,22 +192,19 @@ const introPrompt = {
   direction: 'horizontal',
   list: [
     {
-      value: 'quickSort',
       label: '帮我写一个快速排序',
       iconConfig: {name: 'icon-info-o', color: '#5e7ce0'},
       desc: '使用 js 实现一个快速排序',
     },
     {
-      value: 'helpMd',
       label: '你可以帮我做些什么？',
       iconConfig: {name: 'icon-star', color: 'rgb(255, 215, 0)'},
       desc: '了解当前大模型可以帮你做的事',
     },
     {
-      value: 'bindProjectSpace',
-      label: '怎么绑定项目空间',
+      label: '在D://周杰伦.txt下写入周杰伦的信息',
       iconConfig: {name: 'icon-priority', color: '#3ac295'},
-      desc: '如何绑定云空间中的项目',
+      desc: '信息写入',
     },
   ],
 };
@@ -285,6 +283,12 @@ window.agentIpc.onMessage((event, data) => {
           text = data.content;
         } else {
           text = toolsTextMapper(data.tool_calls);
+        }
+
+
+        if (!text?.trim?.()?.length) {
+          console.log("no content")
+          return;
         }
 
 

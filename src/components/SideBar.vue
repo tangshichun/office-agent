@@ -1,6 +1,7 @@
 <script setup>
 import {defineProps, defineEmits, computed, h} from 'vue'
 import {MenuFoldOutlined} from "@ant-design/icons-vue";
+import Logo from '@/assets/images/logo.gif'
 
 const props = defineProps({
   show: {
@@ -14,13 +15,16 @@ const emit = defineEmits(['update:show'])
 const toggleSidebar = () => {
   emit('update:show', !props.show)
 }
+function handleImageClick() {
+
+}
 </script>
 
 <template>
   <Transition name="sidebar">
     <aside v-if="show" class="sidebar">
       <div class="title">
-        <span>标题</span>
+        <img class="logo" @click="handleImageClick" :src="Logo">
         <a-button class="toggle-btn" @click="toggleSidebar" :icon="h(MenuFoldOutlined)"></a-button>
       </div>
       <div style="min-width: 240px">
@@ -48,8 +52,27 @@ const toggleSidebar = () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  position: relative;
 }
+
+.logo {
+  width: 50px;
+  position: absolute;
+  left: 12px;
+  animation: logoMove 2.5s linear infinite;
+}
+
+@keyframes logoMove {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(120px);
+  }
+}
+
 .toggle-btn {
+  margin-left: auto;
 }
 
 .sidebar-enter-active,
