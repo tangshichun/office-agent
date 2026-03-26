@@ -7,8 +7,8 @@ export default {
     deleteSessions: (sessionId) => {
         return ipcRenderer.invoke('agent:delete', sessionId);
     },
-    createAgent: (data) => {
-        return ipcRenderer.invoke('agent:create', data);
+    getSessionDetail: (sessionId) => {
+        return ipcRenderer.invoke('agent:detail', sessionId);
     },
     sendMessage: (data) => {
         return ipcRenderer.invoke('agent:message', data);

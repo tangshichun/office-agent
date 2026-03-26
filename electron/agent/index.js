@@ -1,6 +1,6 @@
 import 'dotenv/config'
 import {TavilySearch} from '@langchain/tavily'
-import {HumanMessage, AIMessage} from '@langchain/core/messages'
+import {HumanMessage} from '@langchain/core/messages'
 import {tool} from '@langchain/core/tools'
 import {z} from 'zod'
 import {exec} from 'child_process'
@@ -115,6 +115,11 @@ function getMemory(sessionId) {
   };
 }
 
+export async function getSessionMemory(sessionId) {
+  const memory = getMemory(sessionId).memory;
+  const memoryVars = await memory.loadMemoryVariables();
+  return memoryVars.chat_history || [];
+}
 
 // 5. 定义调用模型的函数
 async function callModel(state, config) {
@@ -123,7 +128,7 @@ async function callModel(state, config) {
   const memory = getMemory(sessionId).memory;
 
   // 加载历史记录
-  const memoryVars = await memory.loadMemoryVariables({input: state.messages[state.messages.length - 1].content});
+  const memoryVars = await memory.loadMemoryVariables();
   const history = memoryVars.chat_history || [];
 
   // 构建包含历史记录的消息数组

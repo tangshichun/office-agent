@@ -1,5 +1,5 @@
-import {callLLM} from "../agent";
-import {deleteSession, FileMemory, getAllSessions} from "../agent/file-memory";
+import {callLLM, getSessionMemory} from "../agent";
+import {deleteSession, getAllSessions} from "../agent/file-memory";
 
 const { app, ipcMain, shell, dialog } = require('electron');
 
@@ -9,8 +9,10 @@ function registryHandler(window) {
     console.log(...message);
   })
 
-  ipcMain.handle('agent:create', (_, data) => {
-    console.log('create agent', data.type)
+  ipcMain.handle('agent:detail', async (_, sessionId) => {
+    const list = await getSessionMemory(sessionId);
+    console.log('agent:list', list);
+    return list;
   })
 
   ipcMain.handle('agent:message', async (event, data) => {
@@ -37,9 +39,7 @@ function registryHandler(window) {
   })
 
   ipcMain.handle('agent:list', async (event) => {
-    const list = await getAllSessions()
-    console.log('agent:list', list);
-    return list;
+    return await getAllSessions();
   })
 
   ipcMain.handle('agent:delete', async (event, sessionId) => {

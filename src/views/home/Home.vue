@@ -7,7 +7,7 @@
           新建会话
         </a-button>
 
-        <HistoryList @item-delete="handleDeleteSession" style="margin-top: 20px" :sessions='sessionList'></HistoryList>
+        <HistoryList @item-delete="handleDeleteSession" @item-click="handleItemClick" style="margin-top: 20px" :active-id="currentSessionId" :sessions='sessionList'></HistoryList>
       </div>
     </side-bar>
 
@@ -16,7 +16,7 @@
 
       <McLayout class="container">
         <McLayoutContent
-            v-if="startPage"
+            v-if="!messages.length"
             style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px"
         >
           <McIntroduction
@@ -47,13 +47,13 @@
                       style="margin-bottom: 14px"
                       class="mc-bubble"
                       :loading="msg.loading">
-              <McMarkdownCard :typing="true" :enableThink="true" :content="msg.content" theme="dark"></McMarkdownCard>
+              <McMarkdownCard :typing="typing" :enableThink="true" :content="msg.content" theme="dark"></McMarkdownCard>
             </McBubble>
           </template>
         </McLayoutContent>
         <div class="shortcut" style="display: flex; align-items: center; gap: 8px">
           <McPrompt
-              v-if="!startPage"
+              v-if="!messages.length"
               :list="simplePrompt"
               :direction="'horizontal'"
               style="flex: 1"
@@ -113,6 +113,8 @@ const modelAvatar = {
 const sessionList = shallowRef([]);
 const currentSessionId = ref(ulid())
 
+const typing = ref(false);
+
 onMounted(() => {
   console.log("mounted")
   refreshSessionList();
@@ -121,6 +123,21 @@ onMounted(() => {
 function refreshSessionList() {
   window.agentIpc.getSessions().then((sessions) => {
     sessionList.value = sessions;
+  })
+}
+
+function handleItemClick(sessionId) {
+  console.log(sessionId);
+  currentSessionId.value = sessionId;
+  window.agentIpc.getSessionDetail(sessionId).then(historyList => {
+    console.log('historyList', historyList)
+    typing.value = false;
+    messages.value = historyList.map(item => {
+      return {
+        from: item.role,
+        content: item.content,
+      }
+    })
   })
 }
 
@@ -135,6 +152,13 @@ async function handleDeleteSession(sessionId) {
       window.agentIpc.deleteSessions(sessionId).then(res => {
         console.log("res", res);
         refreshSessionList();
+        if (!sessionList.value.find(item => item.id === currentSessionId.value)) {
+          if (!sessionList.value.length) {
+            return;
+          }
+
+          currentSessionId.value = sessionList.value[0].sessionId;
+        }
       })
     },
   })
@@ -194,7 +218,6 @@ const simplePrompt = [
     label: '你可以帮我做些什么？',
   },
 ];
-const startPage = ref(true);
 const inputValue = ref('');
 const inputFootIcons = [
   {icon: 'icon-at', text: '智能体'},
@@ -205,14 +228,13 @@ const inputFootIcons = [
 const messages = ref([]);
 
 const newConversation = () => {
-  startPage.value = true;
   messages.value = [];
 }
 
 const onSubmit = (evt) => {
+  typing.value = true;
   console.log("onSubmit", evt)
   inputValue.value = '';
-  startPage.value = false;
   // 用户发送消息
   messages.value.push({
     from: 'user',

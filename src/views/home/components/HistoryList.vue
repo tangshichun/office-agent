@@ -7,6 +7,10 @@ const props = defineProps({
     type: Array,
     default: () => []
   },
+  activeId: {
+    type: String,
+    default: ""
+  },
   itemStyle: {
     type: Object,
     default: () => ({})
@@ -106,6 +110,7 @@ function handleDelete(e, sessionId) {
             v-for="(item, iIndex) in category.items"
             :key="iIndex"
             class="history-item"
+            :class="{ active: activeId === item.sessionId }"
             :style="itemStyle"
             :title="item.content"
             @click="handleItemClick(item.sessionId)"
@@ -161,7 +166,7 @@ function handleDelete(e, sessionId) {
   user-select: none;
 }
 
-.history-item:hover {
+.history-item:hover, .history-item.active {
   background-color: rgba(255, 255, 255, 0.1);
 }
 

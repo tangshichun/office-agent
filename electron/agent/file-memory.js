@@ -28,7 +28,7 @@ export class FileMemory {
   }
 
   // 从文件加载历史记录
-  async loadMemoryVariables(inputs) {
+  async loadMemoryVariables() {
     try {
       const sessionFile = this.getSessionFilePath();
       const data = await fs.readFile(sessionFile, 'utf8');
