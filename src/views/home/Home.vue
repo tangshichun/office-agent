@@ -105,7 +105,7 @@ import {h, onMounted, ref, shallowRef} from "vue";
 import SideBar from "../../components/SideBar.vue";
 import {MenuUnfoldOutlined, PlusOutlined} from "@ant-design/icons-vue"
 import HistoryList from "./components/HistoryList.vue";
-import {Modal} from "ant-design-vue";
+import {Modal, message} from "ant-design-vue";
 import {ulid} from "ulid";
 import {toolsTextMapper} from "../../../utils/tools-text-mapper";
 
@@ -236,6 +236,10 @@ const newConversation = () => {
 }
 
 const onSubmit = (evt) => {
+  if (!evt.trim().length) {
+    message.warning("内容不允许为空")
+    return;
+  }
   typing.value = true;
   console.log("onSubmit", evt)
   inputValue.value = '';
@@ -309,9 +313,8 @@ window.agentIpc.onMessage((event, data) => {
       console.log('工具结果:', data.results);
       break;
 
+    case "error":
     case 'final_answer':
-      // finalAnswer.value = data.content;
-      // isLoading.value = false;
       if (messages.value[messages.value.length - 1].loading) {
         messages.value[messages.value.length - 1].content = data.content;
         messages.value[messages.value.length - 1].loading = false;

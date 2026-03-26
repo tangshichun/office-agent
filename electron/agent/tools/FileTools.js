@@ -9,6 +9,29 @@ const execAsync = promisify(exec)
 
 const platform = process.platform
 
+const formatResults = (results, actionName) => {
+  const successResults = results.filter(r => r.success)
+  const failResults = results.filter(r => !r.success)
+  
+  let output = `${actionName}结果：共 ${results.length} 个，成功 ${successResults.length} 个`
+  
+  if (successResults.length > 0) {
+    output += '\n成功：\n'
+    successResults.forEach(r => {
+      output += `- ${r.path}${r.message ? ' - ' + r.message : ''}${r.content !== undefined ? ` (${r.content.length} 字符)` : ''}\n`
+    })
+  }
+  
+  if (failResults.length > 0) {
+    output += '\n失败：\n'
+    failResults.forEach(r => {
+      output += `- ${r.path} - ${r.error}\n`
+    })
+  }
+  
+  return output
+}
+
 const getAbsolutePath = (filePath) => {
   return path.isAbsolute(filePath) ? filePath : path.join(process.cwd(), filePath)
 }
@@ -111,15 +134,7 @@ const DeleteFilesSchema = z.object({
 const readFilesTool = tool(
   async ({ files }) => {
     const results = files.map(({ path }) => readFile(path))
-    const successCount = results.filter(r => r.success).length
-    const failCount = results.filter(r => !r.success).length
-
-    return {
-      total: files.length,
-      success: successCount,
-      failed: failCount,
-      results
-    }
+    return formatResults(results, '读取文件')
   },
   {
     name: 'read_files',
@@ -141,15 +156,7 @@ const readFilesTool = tool(
 const writeFilesTool = tool(
   async ({ files }) => {
     const results = files.map(({ path, content }) => writeFile(path, content))
-    const successCount = results.filter(r => r.success).length
-    const failCount = results.filter(r => !r.success).length
-
-    return {
-      total: files.length,
-      success: successCount,
-      failed: failCount,
-      results
-    }
+    return formatResults(results, '写入文件')
   },
   {
     name: 'write_files',
@@ -162,6 +169,7 @@ const writeFilesTool = tool(
 - 自动创建父目录（如果不存在）
 
 注意事项：
+- 如果有多个文件要写入，那么你一次性传入多个文件参数写入即可，不要调用多次每次写入一个文件
 - 如果文件已存在，会覆盖原有内容
 - 文件路径可以是绝对路径或相对于当前工作目录的路径
 - 写入二进制数据请先转换为 Base64 或其他编码格式`,
@@ -172,15 +180,7 @@ const writeFilesTool = tool(
 const openFilesTool = tool(
   async ({ files }) => {
     const results = await Promise.all(files.map(({ path }) => openFile(path)))
-    const successCount = results.filter(r => r.success).length
-    const failCount = results.filter(r => !r.success).length
-
-    return {
-      total: files.length,
-      success: successCount,
-      failed: failCount,
-      results
-    }
+    return formatResults(results, '打开文件')
   },
   {
     name: 'open_files',
@@ -193,6 +193,7 @@ const openFilesTool = tool(
 - 打开文件夹（传入文件夹路径）
 
 注意事项：
+- 如果有多个文件写入，优先批量写入多个文件
 - Windows 使用 \`start\` 命令，macOS 使用 \`open\` 命令，Linux 使用 \`xdg-open\`
 - 部分文件类型可能没有默认应用程序，需要手动选择
 - 批量打开时可能会弹出多个应用程序窗口
@@ -204,15 +205,7 @@ const openFilesTool = tool(
 const deleteFilesTool = tool(
   async ({ files }) => {
     const results = files.map(({ path }) => deleteFile(path))
-    const successCount = results.filter(r => r.success).length
-    const failCount = results.filter(r => !r.success).length
-
-    return {
-      total: files.length,
-      success: successCount,
-      failed: failCount,
-      results
-    }
+    return formatResults(results, '删除文件')
   },
   {
     name: 'delete_files',

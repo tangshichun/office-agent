@@ -44,6 +44,9 @@ importers:
       langchain:
         specifier: ^0.3.0
         version: 0.3.37(@langchain/core@0.3.80(openai@5.12.2(zod@3.25.76)))(@langchain/deepseek@0.0.1(@langchain/core@0.3.80(openai@5.12.2(zod@3.25.76)))(encoding@0.1.13))(openai@5.12.2(zod@3.25.76))
+      ulid:
+        specifier: ^3.0.2
+        version: 3.0.2
       vue:
         specifier: ^3.5.30
         version: 3.5.30(typescript@5.4.5)
@@ -3008,6 +3011,10 @@ packages:
 
   uc.micro@1.0.6:
     resolution: {integrity: sha512-8Y75pvTYkLJW2hWQHXxoqRgV7qb9B+9vFEtidML+7koHUFapnVJAZ6cKs+Qjz5Aw3aZWHMC6u0wJE3At+nSGwA==}
+
+  ulid@3.0.2:
+    resolution: {integrity: sha512-yu26mwteFYzBAot7KVMqFGCVpsF6g8wXfJzQUHvu1no3+rRRSFcSV2nKeYvNPLD2J4b08jYBDhHUjeH0ygIl9w==}
+    hasBin: true
 
   undici-types@5.26.5:
     resolution: {integrity: sha512-JlCMO+ehdEIKqlFxk6IfVoAUVmgz7cU7zD/h9XZ0qzeosSHmUJVOzSQvvYSYWXkFXC+IfLKSIffhv0sVZup6pA==}
@@ -6495,6 +6502,8 @@ snapshots:
   typescript@5.4.5: {}
 
   uc.micro@1.0.6: {}
+
+  ulid@3.0.2: {}
 
   undici-types@5.26.5: {}
 

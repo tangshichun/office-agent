@@ -2,7 +2,7 @@ import 'dotenv/config'
 import {TavilySearch} from '@langchain/tavily'
 import {HumanMessage} from '@langchain/core/messages'
 import {ChatDeepSeek} from '@langchain/deepseek'
-import {MessagesAnnotation, StateGraph} from '@langchain/langgraph'
+import {GraphRecursionError, MessagesAnnotation, StateGraph} from '@langchain/langgraph'
 import {ToolNode} from '@langchain/langgraph/prebuilt'
 import {buildSystemMessage, FileMemory} from "./file-memory";
 import {toolsTextMapper} from "../../utils/tools-text-mapper";
@@ -11,7 +11,7 @@ import {fileTools} from "./tools/FileTools";
 
 // 2. 定义工具集
 const tools = [
-  new TavilySearch({maxResults: 3, tavilyApiKey: "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"}),
+  new TavilySearch({maxResults: 3, tavilyApiKey: "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", country: "china"}),
   ...fileTools
 ]
 
@@ -97,8 +97,8 @@ const workflow = new StateGraph(MessagesAnnotation)
   .addNode('agent', callModel)
   .addNode('tools', toolNode)
   .addEdge('__start__', 'agent')
-  .addEdge('tools', 'agent')  // 关键：工具执行后回到agent
   .addConditionalEdges('agent', shouldContinue)
+  .addEdge('tools', 'agent')  // 关键：工具执行后回到agent
 
 const app = workflow.compile()
 
@@ -115,126 +115,121 @@ async function callLLM(sessionId, message, onProgress) {
     })
   }
 
-  // 使用 stream 执行，但正确处理状态
-  const stream = await app.stream({
-    messages: [new HumanMessage(message)],
-  }, {
-    recursionLimit: 50,
-    configurable: {
-      sessionId
-    }
-  })
+  try {
+      // 使用 stream 执行，但正确处理状态
+      const stream = await app.stream({
+          messages: [new HumanMessage(message)],
+      }, {
+          recursionLimit: 5,
+          configurable: {
+              sessionId
+          }
+      })
 
+      const finalAnswer = execStream(sessionId, stream, message, onProgress)
+      return finalAnswer || "未获取到有效响应"
+  } catch (e) {
+      console.error(e)
+      return "错误"
+  }
+
+}
+
+// 修改 execStream 函数
+async function execStream(sessionId, stream, message, onProgress) {
   let finalAnswer = null
   let lastStep = null
 
-  // 遍历每个执行步骤
-  for await (const step of stream) {
-    console.log('执行步骤:', Object.keys(step))
-    lastStep = step
+  try {
+    // 遍历每个执行步骤
+    for await (const step of stream) {
+      console.log('执行步骤:', Object.keys(step))
+      lastStep = step
 
-    // 发送步骤信息
-    if (onProgress) {
-      onProgress({
-        sessionId,
-        type: 'step',
-        stepName: Object.keys(step)[0],
-        data: step,
-        timestamp: Date.now()
-      })
-    }
-
-    // 处理 agent 节点的 LLM 响应
-    if (step.agent) {
-      const llmResponse = step.agent.messages[0]
-
-      // 发送 LLM 响应（可能是中间响应）
+      // 发送步骤信息
       if (onProgress) {
         onProgress({
           sessionId,
-          type: 'llm_response',
-          content: llmResponse.content,
-          tool_calls: llmResponse.tool_calls,
+          type: 'step',
+          stepName: Object.keys(step)[0],
+          data: step, // 注意：大对象序列化可能会慢，生产环境建议精简
           timestamp: Date.now()
         })
       }
 
-      // 如果有工具调用，发送工具调用信息
-      if (llmResponse.tool_calls?.length) {
+      // 处理 agent 节点
+      if (step.agent) {
+        const llmResponse = step.agent.messages[0]
+
+        // 检查是否是最终回复 (没有工具调用且有内容)
+        if (!llmResponse.tool_calls?.length && llmResponse.content) {
+          finalAnswer = llmResponse.content
+          // 发送最终答案
+          if (onProgress) {
+            onProgress({
+              sessionId,
+              type: 'final_answer',
+              content: finalAnswer,
+              timestamp: Date.now()
+            })
+          }
+        }
+        // 如果有工具调用，发送中间状态
+        else if (llmResponse.tool_calls?.length) {
+          if (onProgress) {
+            onProgress({
+              sessionId,
+              type: 'tool_calls',
+              tool_calls: llmResponse.tool_calls,
+              timestamp: Date.now()
+            })
+          }
+        }
+      }
+
+      // 处理 tools 节点
+      if (step.tools) {
+        const toolResults = step.tools.messages
         if (onProgress) {
           onProgress({
             sessionId,
-            type: 'tool_calls',
-            tool_calls: llmResponse.tool_calls,
+            type: 'tool_results',
+            results: toolResults.map(msg => ({
+              content: msg.content,
+              tool_call_id: msg.tool_call_id,
+              name: msg.name
+            })),
             timestamp: Date.now()
           })
         }
       }
+    }
 
-      // 如果没有工具调用，这就是最终答案
-      if (!llmResponse.tool_calls?.length && llmResponse.content) {
-        finalAnswer = llmResponse.content
+    // 如果流结束了还没有 finalAnswer，说明可能触发了递归限制或者逻辑中断
+    if (!finalAnswer) {
+      console.warn("流结束但未获取到最终答案，可能是达到了递归限制或被中断。");
+      // 这里不要再次 invoke，而是返回一个提示或者检查 lastStep
+      if (lastStep && lastStep.tools) {
+        // 这种情况说明工具执行了，但 agent 还没来得及生成最终回复流就结束了（通常是因为递归限制）
+        return "系统已达到最大执行步数，未能生成最终回复。请检查工具调用是否陷入循环。";
       }
     }
 
-    // 处理 tools 节点的执行结果
-    if (step.tools) {
-      const toolResults = step.tools.messages
+    return finalAnswer;
 
-      if (onProgress) {
-        onProgress({
-          sessionId,
-          type: 'tool_results',
-          results: toolResults.map(msg => ({
-            content: msg.content,
-            tool_call_id: msg.tool_call_id,
-            name: msg.name
-          })),
-          timestamp: Date.now()
-        })
-      }
+  } catch (error) {
+    console.error("流处理发生错误:", error.name);
+    if (error instanceof GraphRecursionError) {
+      console.error("执行步骤过多，可能陷入死循环，已强制停止。");
+      onProgress({
+        sessionId,
+        type: 'error',
+        content: "由于某些原因导致工作流异常，请稍后重试",
+      })
     }
+    // 如果是递归错误，通常 LangGraph 会在这里抛出
+    throw error;
   }
-
-  // 从最后一步中提取最终答案
-  // 最后一步可能是 agent 或 tools，需要找到最终的 AI 响应
-  if (lastStep) {
-    // 如果最后一步是 agent，直接取内容
-    if (lastStep.agent) {
-      const lastResponse = lastStep.agent.messages[0]
-      if (lastResponse.content && !finalAnswer) {
-        finalAnswer = lastResponse.content
-      }
-    }
-      // 如果最后一步是 tools，说明还需要一次 agent 调用才能得到最终答案
-    // 但流已经结束了，所以需要额外处理
-    else if (lastStep.tools) {
-      // 工具执行后应该还有一次 agent 调用，但流可能已经结束
-      // 这里做个安全处理：如果没有最终答案，再调用一次获取
-      if (!finalAnswer) {
-        console.log("流式执行未获取到最终答案，尝试获取最终状态...")
-        const finalState = await app.invoke({
-          messages: [new HumanMessage(message)]
-        })
-        const lastMsg = finalState.messages[finalState.messages.length - 1]
-        if (lastMsg.content) {
-          finalAnswer = lastMsg.content
-        }
-      }
-    }
-  }
-
-  // 发送最终答案
-  if (onProgress && finalAnswer) {
-    onProgress({
-      sessionId,
-      type: 'final_answer',
-      content: finalAnswer,
-      timestamp: Date.now()
-    })
-  }
-
-  return finalAnswer || "未获取到有效响应"
 }
 
 // 9. 导出
