@@ -100,6 +100,7 @@
 </template>
 
 <script setup>
+import UserAvatar from "@/assets/images/user-avatar.png"
 import {h, onMounted, ref, shallowRef} from "vue";
 import SideBar from "../../components/SideBar.vue";
 import {MenuUnfoldOutlined, PlusOutlined} from "@ant-design/icons-vue"
@@ -109,7 +110,7 @@ import {ulid} from "ulid";
 import {toolsTextMapper} from "../../../utils/tools-text-mapper";
 
 const modelAvatar = {
-  imgSrc: '/src/assets/images/user-avatar.png',
+  imgSrc: UserAvatar,
 };
 
 const sessionList = shallowRef([]);
@@ -286,6 +287,10 @@ window.agentIpc.onMessage((event, data) => {
             content: text,
           });
         }
+        messages.value.push({
+          from: 'model',
+          loading: true,
+        })
       }
       break;
 
