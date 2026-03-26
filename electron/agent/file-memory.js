@@ -45,7 +45,7 @@ export class FileMemory {
       historyString += `${item.role}: ${item.content}\n`;
     }
 
-    return { history: historyString, chat_history: this.chatHistory };
+    return {history: historyString, chat_history: this.chatHistory};
   }
 
   // 保存历史记录到文件
@@ -64,14 +64,14 @@ export class FileMemory {
       }
 
       // 添加用户输入
-      this.chatHistory.push({
+      conversationString.inputs && this.chatHistory.push({
         role: 'user',
         content: conversationString.inputs.input,
         timestamp: new Date().toISOString()
       });
 
       // 添加助手回复
-      this.chatHistory.push({
+      conversationString.outputs && this.chatHistory.push({
         role: 'model',
         content: conversationString.outputs.response,
         timestamp: new Date().toISOString()
@@ -119,13 +119,23 @@ export class FileMemory {
 
 // 工具函数：获取所有会话ID
 export async function getAllSessions(historyDir = './chat_histories') {
+  console.error("getAllSessions")
   try {
-    await fs.mkdir(historyDir, { recursive: true });
+    await fs.mkdir(historyDir, {recursive: true});
     const files = await fs.readdir(historyDir);
-    return files
-        .filter(file => file.endsWith('.json'))
-        .map(file => file.replace('.json', ''));
+    const result = [];
+    for (const fileName of files) {
+      const dataListStr = await fs.readFile(path.join(historyDir, fileName), 'utf8');
+      const dataList = JSON.parse(dataListStr);
+      result.push({
+        sessionId: fileName.replace('.json', ''),
+        // 目前只留第一个和最后一个就够了
+        list: dataList.length > 1 ? [dataList[0], dataList[dataList.length - 1]] : [...dataList]
+      })
+    }
+    return result.reverse();
   } catch (error) {
+    console.log(error)
     return [];
   }
 }
@@ -144,7 +154,7 @@ export async function deleteSession(sessionId, historyDir = './chat_histories') 
 
 export function buildSystemMessage(history = []) {
   if (history.length === 0) {
-    return new SystemMessage("你是一个有用的助手，能回答用户的问题并执行操作。");
+    return new SystemMessage("当你看到这条消息的时候，代表之前没有对话记录，当用户问你关于之前的记录时，你可以告诉用户没有历史记录，或者你也可以根据用户的提问来进行回答，不需要担心之前的历史记录，因为没有历史记录。");
   }
 
   let historyText = "以下是之前的对话历史:\n\n";

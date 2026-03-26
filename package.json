@@ -30,6 +30,7 @@
     "dotenv": "^16.3.0",
     "electron-squirrel-startup": "^1.0.1",
     "langchain": "^0.3.0",
+    "ulid": "^3.0.2",
     "vue": "^3.5.30",
     "vue-devui": "^1.6.36",
     "vue-router": "^4.6.4",

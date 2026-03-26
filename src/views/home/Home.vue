@@ -7,14 +7,7 @@
           新建会话
         </a-button>
 
-        <HistoryList style="margin-top: 20px" :sessions='[{
-      sessionId: "asdasd",
-      list: [  {
-        "role": "user",
-        "content": "我是谁我是谁我是谁我是谁我是谁我是谁我是谁我是谁我是谁我是谁我是谁我是谁我是谁我是谁我是谁我是谁",
-        "timestamp": "2026-03-25T16:44:41.569Z"
-      }]
-    }]'></HistoryList>
+        <HistoryList @item-delete="handleDeleteSession" style="margin-top: 20px" :sessions='sessionList'></HistoryList>
       </div>
     </side-bar>
 
@@ -106,14 +99,46 @@
 </template>
 
 <script setup>
-import {h, ref} from "vue";
+import {h, onMounted, ref, shallowRef} from "vue";
 import SideBar from "../../components/SideBar.vue";
 import {MenuUnfoldOutlined, PlusOutlined} from "@ant-design/icons-vue"
 import HistoryList from "./components/HistoryList.vue";
+import {Modal} from "ant-design-vue";
+import {ulid} from "ulid";
 
 const modelAvatar = {
   imgSrc: '/src/assets/images/user-avatar.png',
 };
+
+const sessionList = shallowRef([]);
+const currentSessionId = ref(ulid())
+
+onMounted(() => {
+  console.log("mounted")
+  refreshSessionList();
+})
+
+function refreshSessionList() {
+  window.agentIpc.getSessions().then((sessions) => {
+    sessionList.value = sessions;
+  })
+}
+
+async function handleDeleteSession(sessionId) {
+  Modal.confirm({
+    title: "确认删除？",
+    content: "删除会话后历史记录将无法找回，请确认是否删除",
+    okText: "删除",
+    cancelText: "取消",
+    maskClosable: true,
+    onOk: () => {
+      window.agentIpc.deleteSessions(sessionId).then(res => {
+        console.log("res", res);
+        refreshSessionList();
+      })
+    },
+  })
+}
 
 const showSidebar = ref(true);
 
@@ -122,9 +147,12 @@ function handleToggleClick() {
 }
 
 function handleCreateTalkAgentClick() {
-  window.agentIpc.createAgent({
-    type: "talk",
-  })
+  currentSessionId.value = ulid();
+  messages.value = [];
+}
+
+function checkSessionById() {
+
 }
 
 
@@ -197,8 +225,7 @@ const onSubmit = (evt) => {
   }
   messages.value.push(resMsg);
   window.agentIpc.sendMessage({
-    sessionId: 'xxxSessionID',
-    modelId: "xxxxx",
+    sessionId: currentSessionId.value,
     message: evt,
   })
 };
@@ -207,15 +234,12 @@ const onSubmit = (evt) => {
 window.agentIpc.onMessage((event, data) => {
   console.log('收到进度:', data);
 
-  // 添加到日志
-  // logs.value.push({
-  //   type: data.type,
-  //   data: data,
-  //   timestamp: data.timestamp || Date.now()
-  // });
-
   // 根据不同类型更新 UI
   switch (data.type) {
+    case 'create-memory' : {
+      refreshSessionList()
+      break;
+    }
     case 'llm_response':
       // 可以实时显示 LLM 的思考过程
       console.log('LLM 响应:', data.content);
