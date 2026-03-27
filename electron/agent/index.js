@@ -7,6 +7,7 @@ import {ToolNode} from '@langchain/langgraph/prebuilt'
 import {buildSystemMessage, FileMemory} from "./file-memory";
 import {toolsTextMapper} from "../../utils/tools-text-mapper";
 import {fileTools} from "./tools/FileTools";
+import {excelTools} from "./tools/ExcelTools";
 
 
 // 2. 定义工具集
@@ -25,7 +26,8 @@ const tools = [
 4. **禁止死循环**：不要在第 4 次尝试调用 TavilySearch，否则会导致系统崩溃。
 `,
     }),
-    ...fileTools
+    ...fileTools,
+  ...excelTools
 ]
 
 // 3. 定义模型
