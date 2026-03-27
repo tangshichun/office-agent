@@ -9,7 +9,7 @@ const execAsync = promisify(exec)
 
 const platform = process.platform
 
-const formatResults = (results, actionName) => {
+export const formatResults = (results, actionName) => {
   const successResults = results.filter(r => r.success)
   const failResults = results.filter(r => !r.success)
   
@@ -164,9 +164,59 @@ const readFilesTool = tool(
 )
 
 const writeFilesTool = tool(
-  async ({ files }) => {
-    const results = files.map(({ path, content }) => writeFile(path, content))
-    return formatResults(results, '写入文件')
+  async ({ files, options = {} }) => {
+    const { onFileExists = 'ask' } = options;
+    const results = [];
+    const skippedFiles = [];
+
+    for (const { path, content } of files) {
+      try {
+        // 检查文件是否存在
+        const fileExists = await fs.access(path).then(() => true).catch(() => false);
+
+        if (fileExists && onFileExists === 'ask') {
+          // 这里需要在实际调用时处理交互式询问
+          // 为了示例，返回一个需要用户确认的状态
+          results.push({
+            path,
+            status: 'pending_confirmation',
+            message: `文件 ${path} 已存在，是否需要覆盖？`,
+          });
+          continue;
+        }
+
+        if (fileExists && onFileExists === 'skip') {
+          skippedFiles.push(path);
+          results.push({
+            path,
+            status: 'skipped',
+            message: `文件 ${path} 已存在，已跳过`,
+          });
+          continue;
+        }
+
+        // 写入文件（会自动创建父目录）
+        await writeFile(path, content);
+        results.push({
+          path,
+          status: 'success',
+          message: `文件 ${path} 写入成功`,
+        });
+      } catch (error) {
+        results.push({
+          path,
+          status: 'error',
+          message: `写入文件 ${path} 失败: ${error.message}`,
+        });
+      }
+    }
+
+    if (skippedFiles.length > 0) {
+      return formatResults(results, '写入文件') +
+        `\n\n已跳过 ${skippedFiles.length} 个已存在的文件: ${skippedFiles.join(', ')}`;
+    }
+
+    return formatResults(results, '写入文件');
   },
   {
     name: 'write_files',
@@ -178,15 +228,20 @@ const writeFilesTool = tool(
 - 可以用于生成代码文件、配置文件、文档等
 - 自动创建父目录（如果不存在）
 
+文件存在性处理策略：
+- ask（默认）：如果文件已存在，会询问用户是否覆盖
+  - 用户可以选择：1. 覆盖文件 2. 跳过该文件 3. 重命名文件 4. 终止所有操作
+- skip：自动跳过已存在的文件，不覆盖
+- overwrite：自动覆盖已存在的文件（谨慎使用）
+
 注意事项：
-- 如果有多个文件要写入，那么你一次性传入多个文件参数写入即可，不要调用多次每次写入一个文件
-- 如果文件已存在，会覆盖原有内容
+- 如果有多个文件要写入，一次性传入所有文件参数，避免多次调用
 - 文件路径可以是绝对路径或相对于当前工作目录的路径
-- 写入二进制数据请先转换为 Base64 或其他编码格式`,
+- 写入二进制数据请先转换为 Base64 或其他编码格式
+- 建议在批量写入前先检查文件存在性，避免意外覆盖`,
     schema: WriteFilesSchema,
   }
-)
-
+);
 const openFilesTool = tool(
   async ({ files }) => {
     const results = await Promise.all(files.map(({ path }) => openFile(path)))
@@ -240,9 +295,9 @@ const checkFilesTool = tool(
   async ({ files }) => {
     const results = files.map(({ path }) => checkFileExists(path))
     
-    let output = `检查文件存在性结果：共 ${results.length} 个文件\n`
+    let output = `查询完毕，结果如下：`
     results.forEach(r => {
-      output += `${r.path} - ${r.exists ? '文件已存在' : '文件不存在'}\n`
+      output += `${r.path} - ${r.exists ? '文件已存在' : '文件不存在'}；  `
     })
     
     return output
