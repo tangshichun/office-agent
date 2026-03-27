@@ -219,8 +219,6 @@ const SheetDataSchema = z.object({
 
 const ExcelFileWithDataSchema = z.object({
   path: z.string().describe('Excel 文件的绝对路径或相对于当前工作目录的路径'),
-  sheetName: z.string().optional().describe('Sheet 名称（旧格式兼容，不推荐使用）'),
-  data: z.array(z.record(z.string(), z.any())).optional().describe('单元格数据（旧格式兼容，不推荐使用）'),
   sheets: z.array(SheetDataSchema).optional().describe('要写入的 Sheet 列表，支持多 Sheet 批量写入（推荐格式）')
 }).refine(data => data.sheets || data.data, {
   message: "必须提供 sheets 或 data 字段之一"

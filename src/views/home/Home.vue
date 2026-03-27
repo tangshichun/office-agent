@@ -186,7 +186,7 @@ function checkSessionById() {
 
 
 const description = [
-  '您可以说，帮我查询下下周天气',
+  '我集成了文件操作tools，例如txt、excel文件',
 ];
 const introPrompt = {
   direction: 'horizontal',
