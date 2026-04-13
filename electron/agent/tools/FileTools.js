@@ -165,6 +165,7 @@ const readFilesTool = tool(
 
 const writeFilesTool = tool(
   async ({ files, options = {} }) => {
+    console.log(files, options)
     const { onFileExists = 'ask' } = options;
     const results = [];
     const skippedFiles = [];
@@ -172,13 +173,14 @@ const writeFilesTool = tool(
     for (const { path, content } of files) {
       try {
         // 检查文件是否存在
-        const fileExists = await fs.access(path).then(() => true).catch(() => false);
+        const fileExists = fs.existsSync(path);
 
         if (fileExists && onFileExists === 'ask') {
           // 这里需要在实际调用时处理交互式询问
           // 为了示例，返回一个需要用户确认的状态
           results.push({
             path,
+            success: false,
             status: 'pending_confirmation',
             message: `文件 ${path} 已存在，是否需要覆盖？`,
           });
@@ -189,6 +191,7 @@ const writeFilesTool = tool(
           skippedFiles.push(path);
           results.push({
             path,
+            success: true,
             status: 'skipped',
             message: `文件 ${path} 已存在，已跳过`,
           });
@@ -200,16 +203,22 @@ const writeFilesTool = tool(
         results.push({
           path,
           status: 'success',
+          success: true,
           message: `文件 ${path} 写入成功`,
         });
       } catch (error) {
+        console.log("write error:", error);
         results.push({
           path,
+          success: false,
           status: 'error',
           message: `写入文件 ${path} 失败: ${error.message}`,
         });
       }
     }
+
+    console.log(formatResults(results, '写入文件') +
+      `\n\n已跳过 ${skippedFiles.length} 个已存在的文件: ${skippedFiles.join(', ')}`)
 
     if (skippedFiles.length > 0) {
       return formatResults(results, '写入文件') +
@@ -227,6 +236,7 @@ const writeFilesTool = tool(
 - 支持同时写入多个文件
 - 可以用于生成代码文件、配置文件、文档等
 - 自动创建父目录（如果不存在）
+- 如果操作文件失败，禁止重试，告诉用户写入失败并且取消本次操作
 
 文件存在性处理策略：
 - ask（默认）：如果文件已存在，会询问用户是否覆盖

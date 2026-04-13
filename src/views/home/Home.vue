@@ -202,7 +202,7 @@ const introPrompt = {
       desc: '了解当前大模型可以帮你做的事',
     },
     {
-      label: '在D://周杰伦.txt下写入周杰伦的信息',
+      label: '在D:\\周杰伦.txt下写入周杰伦的信息',
       iconConfig: {name: 'icon-priority', color: '#3ac295'},
       desc: '信息写入',
     },
@@ -238,7 +238,7 @@ const onSubmit = (evt) => {
     message.warning("内容不允许为空")
     return;
   }
-  typing.value = true;
+  typing.value = false;
   console.log("onSubmit", evt)
   inputValue.value = '';
   // 用户发送消息
